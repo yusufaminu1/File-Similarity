@@ -1,0 +1,118 @@
+#include "wfd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdio.h>
+
+WFD *wfd_create(const char *filename) {
+    /* TODO:
+     * - malloc a WFD
+     * - strdup the filename
+     * - initialize head to NULL and total_words to 0
+     * - return the WFD
+     */
+    WFD *wfd = malloc(sizeof(WFD));
+    if (!wfd) { perror("malloc"); exit(EXIT_FAILURE); }
+    wfd->filename = strdup(filename);
+    if (!wfd->filename) { perror("strdup"); exit(EXIT_FAILURE); }
+    wfd->head = NULL;
+    wfd->total_words = 0;
+    return wfd;
+}
+
+void wfd_add_word(WFD *wfd, const char *word) {
+    /* TODO:
+     * - increment total_words
+     * - walk the sorted linked list to find where this word belongs
+     * - if the word already exists, increment its count and return
+     * - if not found, malloc a new WordNode, strdup the word, set count=1,
+     *   and insert it in sorted (lexicographic) order
+     *
+     * Hint: use a pointer-to-pointer (WordNode **pp = &wfd->head) to make
+     * insertion clean without needing a separate "prev" pointer.
+     */
+    wfd->total_words++;
+    WordNode *temp = wfd->head;
+    WordNode *prev = NULL;
+
+    while(temp!=NULL){
+        if(strcmp(temp->word,word)<0){
+            prev = temp;
+            temp = temp->next;
+        }else if(strcmp(temp->word,word)==0){
+            temp->count++;
+            return;
+        }else if(strcmp(temp->word,word)>0){
+            break;
+        }
+        
+        
+    }
+   WordNode *wfdnew = malloc(sizeof(WordNode));
+    if (!wfdnew) { perror("malloc"); exit(EXIT_FAILURE); }
+    wfdnew->word  = strdup(word);
+    if (!wfdnew->word) { perror("strdup"); exit(EXIT_FAILURE); }
+    wfdnew->count = 1;
+    wfdnew->freq  = 0.0;
+    if (prev == NULL) {
+        wfd->head = wfdnew;
+    }else{
+        prev->next = wfdnew;
+    }
+    wfdnew->next = temp;
+
+    
+}
+
+void wfd_finalize(WFD *wfd) {
+    WordNode *temp = wfd->head;
+    if(wfd->total_words == 0){
+        return;
+    }
+    while(temp!=NULL){
+        temp->freq = (double)temp->count/wfd->total_words;
+        temp = temp->next;
+    }
+    /* TODO:
+     * - walk the list and set each node's freq = count / total_words
+     * - guard against total_words == 0
+     */
+}
+
+void wfd_free(WFD *wfd) {
+    WordNode *curr = wfd->head;
+    
+    while(curr!=NULL){
+        WordNode *next = curr->next;
+        free(curr->word);
+        free(curr);
+        curr = next;
+    }
+    free(wfd->filename);
+    free(wfd);
+    /* TODO:
+     * - walk the list freeing each node's word and then the node itself
+     * - free wfd->filename
+     * - free wfd
+     */
+}
+
+double compute_jsd(const WFD *a, const WFD *b) {
+    /* TODO:
+     * Use simultaneous iteration over both sorted lists to compute JSD.
+     *
+     * Keep running totals kld1 and kld2.
+     * At each step, compare the current word in each list:
+     *   - word appears in both:  f1 = a->freq, f2 = b->freq, advance both
+     *   - word only in a:        f1 = a->freq, f2 = 0,       advance a
+     *   - word only in b:        f1 = 0,       f2 = b->freq, advance b
+     *
+     * Then:
+     *   mean = 0.5 * (f1 + f2)
+     *   if f1 > 0: kld1 += f1 * log2(f1 / mean)
+     *   if f2 > 0: kld2 += f2 * log2(f2 / mean)
+     *
+     * Finally return sqrt(0.5 * kld1 + 0.5 * kld2)
+     */
+    return 0.0;
+}
