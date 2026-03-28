@@ -144,7 +144,31 @@ void process_directory(const char *path, FileSet *fs) {
      *      and add the result to fs (if non-NULL)
      * 3. closedir()
      */
+    DIR *dir = opendir(path);
+    if(!dir) { 
+      perror(path);
+      return;
+    }
 
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL) {
+      if(entry->d_name[0] =='.') continue;
+      char full[1024];
+      snprintf(full, sizeof(full), "%s/%s", path, entry->d_name);
+      struct stat st;
+      if(stat(full, &st) < 0) {
+        perror(full);
+        continue;
+      }
+      
+      if(S_ISDIR(st.st_mode)) {
+        process_directory(full, fs);
+      } else if(S_ISREG(st.st_mode) && has_suffix(entry->d_name, SUFFIX)) {
+        WFD *wfd = read_file(full);
+        if(wfd) fileset_add(fs, wfd);
+      }
+    }
+    closedir(dir);
 }
 
 /* Handle one command-line argument (file or directory) */
@@ -155,6 +179,19 @@ void process_arg(const char *path, FileSet *fs) {
      * - if regular file: call read_file() and add to fs
      *   (explicit files are added regardless of suffix)
      */
+    struct stat st;
+    if(stat(path, &st) < 0) { 
+      perror(path); 
+      return; 
+    }
+    if(S_ISDIR(st.st_mode)) {
+      process_directory(path, fs);
+    } else if (S_ISREG(st.st_mode)) {
+      WFD *wfd = read_file(path);
+      if(wfd) {
+        fileset_add(fs, wfd);
+      }
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -213,7 +250,7 @@ int main(int argc, char *argv[]) {
       for(int j = i + 1; j < n; j++) {
         comps[idx].file1 = fs.files[i]->filename;
         comps[idx].file2 = fs.files[j]->filename;
-        comps[idx].combined_words = fs.files[i] + fs.files[j]->total_words;
+        comps[idx].combined_words = fs.files[i]->total_words + fs.files[j]->total_words;
         comps[idx].jsd = compute_jsd(fs.files[i], fs.files[j]);
         idx++;
       }
