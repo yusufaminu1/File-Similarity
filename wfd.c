@@ -114,5 +114,36 @@ double compute_jsd(const WFD *a, const WFD *b) {
      *
      * Finally return sqrt(0.5 * kld1 + 0.5 * kld2)
      */
-    return 0.0;
+    double kld1 = 0.0;
+    double kld2 = 0.0;
+    WordNode *nodeA = a->head;
+    WordNode *nodeB = b->head;
+
+    while(nodeA != NULL || nodeB != NULL) {
+      double f1 = 0.0;
+      double f2 = 0.0;
+      int compare;
+      if (nodeA == NULL) { compare = 1; }
+      else if (nodeB == NULL) { compare = -1; }
+      else { compare = strcmp(nodeA->word, nodeB->word); }
+
+      if(compare < 0) {
+        f1 = nodeA->freq;
+        nodeA = nodeA->next;
+      } else if (compare > 0) {
+        f2 = nodeB->freq;
+        nodeB = nodeB->next;
+      } else {
+        f1 = nodeA->freq;
+        f2 = nodeB->freq;
+        nodeA = nodeA->next;
+        nodeB = nodeB->next;
+      }
+
+      double mean = 0.5 * (f1 + f2);
+      if(f1 > 0) { kld1 += f1 * log2(f1 / mean); }
+      if(f2 > 0) { kld2 += f2 * log2(f2 / mean); }
+    }
+
+    return sqrt(0.5 * kld1 + 0.5 * kld2);
 }

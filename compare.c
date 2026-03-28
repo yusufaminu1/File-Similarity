@@ -144,6 +144,7 @@ void process_directory(const char *path, FileSet *fs) {
      *      and add the result to fs (if non-NULL)
      * 3. closedir()
      */
+
 }
 
 /* Handle one command-line argument (file or directory) */
@@ -169,8 +170,9 @@ typedef struct {
 
 /* Comparator for qsort: decreasing combined word count */
 int cmp_comparisons(const void *a, const void *b) {
-    /* TODO */
-    return 0;
+    const Comparison *compA = (const Comparison *)a;
+    const Comparison *compB = (const Comparison *)b;
+    return compB->combined_words - compA->combined_words;
 }
 
 /* ------------------------------------------------------------------ */
@@ -206,10 +208,24 @@ int main(int argc, char *argv[]) {
      * - nested loop over every (i, j) pair with j > i
      * - fill in comps[idx].file1, file2, combined_words, jsd
      */
+    int idx = 0;
+    for(int i = 0; i < n; i++) {
+      for(int j = i + 1; j < n; j++) {
+        comps[idx].file1 = fs.files[i]->filename;
+        comps[idx].file2 = fs.files[j]->filename;
+        comps[idx].combined_words = fs.files[i] + fs.files[j]->total_words;
+        comps[idx].jsd = compute_jsd(fs.files[i], fs.files[j]);
+        idx++;
+      }
+    }
 
     qsort(comps, num_pairs, sizeof(Comparison), cmp_comparisons);
 
     /* TODO: print each comparison as "%.5f file1 file2\n" */
+
+    for(int i = 0; i < num_pairs; i++) {
+      printf("%.5f %s %s\n", comps[i].jsd, comps[i].file1, comps[i].file2);
+    }
 
     free(comps);
     fileset_free(&fs);
