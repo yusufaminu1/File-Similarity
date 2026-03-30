@@ -79,18 +79,7 @@ int is_word_char(char c) {
 /* Read a file using open/read/close, tokenize words, return a WFD.
  * Returns NULL on error (after calling perror). */
 WFD *read_file(const char *path) {
-    /* TODO:
-     * 1. open() the file; call perror and return NULL on failure
-     * 2. Create a WFD with wfd_create()
-     * 3. Maintain a dynamically growing word buffer (start small, double
-     *    when full) — the spec says no maximum word length
-     * 4. Loop: read() a chunk into a local buffer
-     *    - for each byte: if is_word_char(), append tolower() to word buffer
-     *    - else if word buffer non-empty, call wfd_add_word() and reset
-     * 5. After the loop flush any remaining word in the buffer
-     * 6. free the word buffer, close() the fd
-     * 7. Call wfd_finalize() and return the WFD
-     */
+   
     int fd = open(path, O_RDONLY);
     if (fd < 0) { perror(path); return NULL; }
     WFD *this = wfd_create(path);
@@ -173,12 +162,6 @@ void process_directory(const char *path, FileSet *fs) {
 
 /* Handle one command-line argument (file or directory) */
 void process_arg(const char *path, FileSet *fs) {
-    /* TODO:
-     * - stat() the path; call perror and return on failure
-     * - if directory: call process_directory()
-     * - if regular file: call read_file() and add to fs
-     *   (explicit files are added regardless of suffix)
-     */
     struct stat st;
     if(stat(path, &st) < 0) { 
       perror(path); 
@@ -240,11 +223,6 @@ int main(int argc, char *argv[]) {
 
     Comparison *comps = malloc(num_pairs * sizeof(Comparison));
     if (!comps) { perror("malloc"); exit(EXIT_FAILURE); }
-
-    /* TODO:
-     * - nested loop over every (i, j) pair with j > i
-     * - fill in comps[idx].file1, file2, combined_words, jsd
-     */
     int idx = 0;
     for(int i = 0; i < n; i++) {
       for(int j = i + 1; j < n; j++) {
@@ -257,8 +235,6 @@ int main(int argc, char *argv[]) {
     }
 
     qsort(comps, num_pairs, sizeof(Comparison), cmp_comparisons);
-
-    /* TODO: print each comparison as "%.5f file1 file2\n" */
 
     for(int i = 0; i < num_pairs; i++) {
       printf("%.5f %s %s\n", comps[i].jsd, comps[i].file1, comps[i].file2);

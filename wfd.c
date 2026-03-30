@@ -5,12 +5,6 @@
 #include <stdio.h>
 
 WFD *wfd_create(const char *filename) {
-    /* TODO:
-     * - malloc a WFD
-     * - strdup the filename
-     * - initialize head to NULL and total_words to 0
-     * - return the WFD
-     */
     WFD *wfd = malloc(sizeof(WFD));
     if (!wfd) { perror("malloc"); exit(EXIT_FAILURE); }
     wfd->filename = strdup(filename);
@@ -21,16 +15,6 @@ WFD *wfd_create(const char *filename) {
 }
 
 void wfd_add_word(WFD *wfd, const char *word) {
-    /* TODO:
-     * - increment total_words
-     * - walk the sorted linked list to find where this word belongs
-     * - if the word already exists, increment its count and return
-     * - if not found, malloc a new WordNode, strdup the word, set count=1,
-     *   and insert it in sorted (lexicographic) order
-     *
-     * Hint: use a pointer-to-pointer (WordNode **pp = &wfd->head) to make
-     * insertion clean without needing a separate "prev" pointer.
-     */
     wfd->total_words++;
     WordNode *temp = wfd->head;
     WordNode *prev = NULL;
@@ -73,10 +57,6 @@ void wfd_finalize(WFD *wfd) {
         temp->freq = (double)temp->count/wfd->total_words;
         temp = temp->next;
     }
-    /* TODO:
-     * - walk the list and set each node's freq = count / total_words
-     * - guard against total_words == 0
-     */
 }
 
 void wfd_free(WFD *wfd) {
@@ -90,11 +70,6 @@ void wfd_free(WFD *wfd) {
     }
     free(wfd->filename);
     free(wfd);
-    /* TODO:
-     * - walk the list freeing each node's word and then the node itself
-     * - free wfd->filename
-     * - free wfd
-     */
 }
 
 double compute_jsd(const WFD *a, const WFD *b) {
